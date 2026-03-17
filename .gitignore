@@ -1,0 +1,13 @@
+# Ansible
+*.retry
+*.pyc
+.ansible/
+fetched/
+
+# OS specific
+.DS_Store
+.Thumbs.db
+
+# Credential safety (just in case)
+*.pem
+*.key
