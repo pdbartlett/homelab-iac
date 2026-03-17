@@ -1,0 +1,9 @@
+---
+- name: 🚀 Network and Shell Configuration
+  import_playbook: playbooks/configuration.yml
+  
+- name: 🏗️ Package Managers
+  import_playbook: playbooks/package-managers.yml
+  
+- name: 📦 Packages and Configuration
+  import_playbook: playbooks/packages.yml

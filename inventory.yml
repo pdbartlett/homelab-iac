@@ -1,0 +1,75 @@
+all:
+  children:
+    managed:
+      vars:
+        ansible_host: "{{ host_ip_address }}"
+        ansible_display_hostname: "{{ local_dns_name | default(inventory_hostname) }}"
+        ansible_user: "{{ ssh_user }}"
+        ansible_ssh_private_key_file: "~/.ssh/id_ed25519"
+      hosts:
+        macmini:
+          ansible_connection: local
+        argonpi:
+        bigmac:
+        oci_free:
+    unmanaged:
+      vars:
+        ansible_connection: local  # Do not try to connect.
+      hosts:
+        cctv:
+    home:
+      vars:
+        local_dns_name: "{{ inventory_hostname }}.home"
+      hosts:
+        macmini:
+          host_ip_address: 192.168.86.226
+          ssh_user: pdbartlett
+          brew_pkgs:
+            - curl
+            - git
+          uv_pkgs:
+            - ipython
+        argonpi:
+          host_ip_address: 192.168.86.232
+          ssh_user: pdb
+        bigmac:
+          host_ip_address: 192.168.86.225
+          ssh_user: pdbartlett
+        cctv:
+          host_ip_address: 192.168.86.224
+    cloud:
+      vars:
+        local_dns_name: "{{ inventory_hostname }}.cloud"
+      hosts:
+        oci_free:
+          host_ip_address: 84.8.151.76
+          ssh_user: ubuntu
+    external:
+      hosts:
+        github:
+          fqdn: github.com
+          ssh_user: git
+    macos:
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+        shell_files:
+          - shell_basics
+          - shell_interactives
+          - zshenv
+          - zshrc
+        tmux_path: /opt/homebrew/bin/tmux
+      hosts:
+        bigmac:
+        macmini:
+    debian:
+      vars:
+        shell_files:
+          - bash_profile
+          - bashrc
+          - profile
+          - shell_basics
+          - shell_interactives
+        tmux_path: /usr/bin/tmux
+      hosts:
+        argonpi:
+        oci_free:

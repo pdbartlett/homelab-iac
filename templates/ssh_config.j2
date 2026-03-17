@@ -1,0 +1,34 @@
+# Managed by Ansible
+
+Host *
+    AddKeysToAgent yes
+    IdentityFile ~/.ssh/id_ed25519
+    ServerAliveInterval 60
+
+{% for host in groups['all'] %}
+{% set hvars = hostvars[host] %}
+{% if hvars.ssh_user is defined %}
+
+# --- {{ host }} ---
+Host {{ host }}
+    HostName {{ hvars.local_dns_name | default(hvars.host_ip_address) | default(hvars.fqdn) | default(host) }}
+    User {{ hvars.ssh_user }}
+    {% if hvars.tmux_path is defined %}
+    RequestTTY yes
+    RemoteCommand {{ hvars.tmux_path }} new-session -A -s main
+    {% endif %}
+    {% if host == 'github' %}
+    IdentitiesOnly yes
+    {% endif %}
+
+{% endif %}
+{% endfor %}
+
+{% if inventory_hostname == 'argonpi' %}
+# --- Special Tunnels ---
+Host oci-tunnel
+    HostName 127.0.0.1
+    Port 7007
+    User ubuntu
+    IdentityFile ~/.ssh/id_dozzle
+{% endif %}

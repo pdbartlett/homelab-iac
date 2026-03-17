@@ -1,0 +1,30 @@
+---
+- name: Network and Shell Configuration
+  hosts: managed
+  tasks:
+    - name: Ensure .ssh directory exists
+      ansible.builtin.file:
+        path: "~/.ssh"
+        state: directory
+        mode: '0700'
+
+    - name: Deploy dynamic SSH config
+      ansible.builtin.template:
+        src: ../templates/ssh_config.j2
+        dest: "~/.ssh/config"
+        mode: '0644'
+
+    - name: Deploy Dozzle private key from Vault (Pi Only)
+      ansible.builtin.copy:
+        content: "{{ vault_id_dozzle_key }}"
+        dest: "~/.ssh/id_dozzle"
+        mode: '0600'
+      when: inventory_hostname == 'argonpi'
+
+    - name: Deploy Shell Configuration ("dotfiles")
+      ansible.builtin.template:
+        src: "../templates/{{ item }}.j2"
+        dest: "{{ ansible_env.HOME }}/.{{ item }}"
+        mode: '0644'
+        backup: yes
+      loop: "{{ shell_files | default([]) }}"

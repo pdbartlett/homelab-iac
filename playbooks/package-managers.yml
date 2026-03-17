@@ -1,0 +1,75 @@
+---
+- name: Package Managers
+  hosts: managed
+  tasks:
+    # --- HOMEBREW (Mac Only) ---
+    - name: Check if Homebrew is installed
+      ansible.builtin.command: brew --version
+      register: brew_check
+      ignore_errors: yes
+      changed_when: false
+      when:
+        - ansible_os_family == "Darwin"
+        - brew_pkgs is defined
+
+    - name: Install Homebrew
+      ansible.builtin.shell: |
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      when: 
+        - ansible_os_family == "Darwin"
+        - (brew_check.rc | default(0)) != 0
+        - brew_pkgs is defined
+
+    - name: Discover Homebrew Prefix
+      ansible.builtin.command: brew --prefix
+      register: brew_prefix_cmd
+      changed_when: false
+      when:
+        - ansible_os_family == "Darwin"
+        - brew_pkgs is defined
+
+    - name: Set Brew Path Fact
+      ansible.builtin.set_fact:
+        brew_bin_path: "{{ brew_prefix_cmd.stdout }}/bin"
+      when:
+        - ansible_os_family == "Darwin"
+        - brew_pkgs is defined
+
+    # --- RUSTUP / CARGO ---
+    - name: Check if Cargo is installed
+      ansible.builtin.command: cargo --version
+      register: cargo_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Install Rustup
+      ansible.builtin.shell: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      when: 
+        - (cargo_check.rc | default(0)) != 0
+        - cargo_pkgs is defined
+
+    # --- UV ---
+    - name: Check if UV is installed
+      ansible.builtin.command: uv --version
+      register: uv_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Install UV
+      ansible.builtin.shell: curl -LsSf https://astral.sh/uv/install.sh | sh
+      when:
+        - (uv_check.rc | default(0)) != 0
+        - py_pkgs is defined
+
+    # --- NVM / NODE ---
+    - name: Check if NVM is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+      register: nvm_check
+
+    - name: Install NVM
+      ansible.builtin.shell: >
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+      when:
+        - not nvm_check.stat.exists
+        - npm_pkgs is defined

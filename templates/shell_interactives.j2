@@ -1,0 +1,74 @@
+# ~/.shell_interactives
+# Contains functions and interactive shell settings.
+# Sourced by .bashrc and .zshrc.
+
+# --- Guard against double-sourcing ---
+if [ -n "$_SHELL_INTERACTIVES_SOURCED" ]; then
+  return
+fi
+export _SHELL_INTERACTIVES_SOURCED=1
+
+# --- Source Common Basics ---
+if [ -f "$HOME/.shell_basics" ]; then
+    . "$HOME/.shell_basics"
+fi
+
+# --- Aliases / functions ---
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias grep='grep --color=auto'
+alias tree="tree -C"
+alias xsh='exec ssh'
+
+{% if ansible_os_family == "Darwin" %}
+alias xtm='exec tm'
+{% endif %}
+
+md() {
+    mkdir -p "$1" && cd "$1"
+}
+
+sh_resource() {
+    unset _SHELL_INTERACTIVES_SOURCED
+    if [ -n "$BASH_VERSION" ]; then
+        [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"
+    elif [ -n "$ZSH_VERSION" ]; then
+        [ -f "$HOME/.zshrc" ] && . "$HOME/.zshrc"
+    fi
+    echo "Configuration reloaded."
+}
+
+tm() {
+    tmux new-session -A -s main
+}
+
+{% if ansible_os_family == "Darwin" %}
+# 🍺 Homebrew Settings
+export HOMEBREW_AUTO_UPDATE_SECS=14400
+export HOMEBREW_CLEANUP_MAX_AGE_DAYS=28
+export HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS=7
+export HOMEBREW_FORCE_BREWED_CURL=1
+export HOMEBREW_FORCE_BREWED_GIT=1
+export HOMEBREW_NO_INSECURE_REDIRECT=1
+export HOMEBREW_UPGRADE_GREEDY=1
+{% endif %}
+
+{% if pkg_cargo is defined or pkg_cargo_extra is defined %}
+# 🦀 Cargo / Rustup
+[ -f "${HOME}/.cargo/env" ] && . "${HOME}/.cargo/env"
+{% endif %}
+
+{% if pkg_npm is defined or pkg_npm_extra is defined %}
+# 🟢 NVM
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+{% endif %}
+
+{% if pkg_uv is defined or pkg_uv_extra is defined %}
+# 🐍 UV
+if command -v uv >/dev/null 2>&1; then
+  eval "$(uv generate-shell-completion {{ ansible_shell | default('zsh') }})"
+  alias uvr='uv run --with'
+fi
+{% endif %}
