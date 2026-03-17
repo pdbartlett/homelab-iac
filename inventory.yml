@@ -17,6 +17,7 @@ all:
         ansible_connection: local  # Do not try to connect.
       hosts:
         cctv:
+        github:
     home:
       vars:
         local_dns_name: "{{ inventory_hostname }}.home"
