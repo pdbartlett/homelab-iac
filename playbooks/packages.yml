@@ -1,6 +1,8 @@
 ---
 - name: Package Installation and Configuration
   hosts: managed
+  environment:
+    PATH: "{{ discovered_path }}"
   tasks:
     - name: Deploy tmux configuration
       ansible.builtin.template:

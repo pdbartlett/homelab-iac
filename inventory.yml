@@ -1,23 +1,38 @@
 all:
   children:
+    # Ansible groups (all hosts must be in managed or unmanaged)
     managed:
       vars:
         ansible_host: "{{ host_ip_address }}"
         ansible_display_hostname: "{{ local_dns_name | default(inventory_hostname) }}"
         ansible_user: "{{ ssh_user }}"
         ansible_ssh_private_key_file: "~/.ssh/id_ed25519"
+        potential_path_dirs:
+          - "/opt/homebrew/bin"
+          - "/usr/local/bin"
+          - "{{ ansible_env.HOME }}/.local/bin"
+          - "{{ ansible_env.HOME }}/.cargo/bin"
+          - "{{ ansible_env.HOME }}/bin"
+          - "{{ ansible_env.HOME }}/homebrew"
       hosts:
         macmini:
-          ansible_connection: local
         argonpi:
         bigmac:
         oci_free:
     unmanaged:
       vars:
-        ansible_connection: local  # Do not try to connect.
+        # Force a failure if anyone tries to run a task here
+        ansible_user: "DO_NOT_MANAGE" 
+        ansible_ssh_common_args: "-o ProxyCommand='/usr/bin/false'"
       hosts:
         cctv:
         github:
+    controller:
+      vars:
+        ansible_connection: local  # Do not try to connect over SSH.
+      hosts:
+        macmini:
+    # Network groups (all hosts must be in exactly one of home, cloud and external)      
     home:
       vars:
         local_dns_name: "{{ inventory_hostname }}.home"
@@ -26,13 +41,14 @@ all:
           host_ip_address: 192.168.86.226
           ssh_user: pdbartlett
           brew_pkgs:
-            - curl
-            - git
+            - tmux
           uv_pkgs:
             - ipython
         argonpi:
           host_ip_address: 192.168.86.232
           ssh_user: pdb
+          apt_pkgs:
+            - tmux
         bigmac:
           host_ip_address: 192.168.86.225
           ssh_user: pdbartlett
@@ -45,11 +61,14 @@ all:
         oci_free:
           host_ip_address: 84.8.151.76
           ssh_user: ubuntu
+          apt_pkgs:
+            - tmux
     external:
       hosts:
         github:
           fqdn: github.com
           ssh_user: git
+    # OS groups (managed hosts must be in exactly one--currently darwin or debian, others may follow)
     macos:
       vars:
         ansible_python_interpreter: /usr/bin/python3

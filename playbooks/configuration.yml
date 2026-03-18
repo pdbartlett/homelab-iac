@@ -21,6 +21,36 @@
         mode: '0600'
       when: inventory_hostname == 'argonpi'
 
+    - name: "Discovery: Find active Node binary"
+      ansible.builtin.shell: |
+        . {{ ansible_env.HOME }}/.nvm/nvm.sh && nvm which default
+      register: nvm_node_path
+      changed_when: false
+      failed_when: false
+
+    - name: "Construction: Note active node directory"
+      set_fact:
+        nvm_bin_dir: "{{ nvm_node_path.stdout | dirname }}"
+      when: nvm_node_path.rc == 0
+
+    - name: "Discovery: Check which potential paths exist and append Node one"
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop: "{{ potential_path_dirs + [nvm_bin_dir | default('')] }}"
+      register: path_results
+      when: item != ""
+      
+    - name: "Construction: Build host-specific PATH fact"
+      ansible.builtin.set_fact:
+        discovered_path: >-
+          {{ path_results.results 
+             | selectattr('stat', 'defined') 
+             | selectattr('stat.exists') 
+             | map(attribute='item') 
+             | join(':') 
+          }}:{{ ansible_env.PATH }}
+      when: path_results is defined
+
     - name: Deploy Shell Configuration ("dotfiles")
       ansible.builtin.template:
         src: "../templates/{{ item }}.j2"

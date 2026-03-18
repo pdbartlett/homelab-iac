@@ -1,6 +1,8 @@
 ---
-- name: 🚀 Precondition checks
-  import_playbook: playbooks/preconditions.yml
+- name: 🚀 Configuration checks
+  import_playbook: playbooks/check-config.yml
+
+# Can add host precondition checks later if needed
   
 - name: 🚀 Network and Shell Configuration
   import_playbook: playbooks/configuration.yml
