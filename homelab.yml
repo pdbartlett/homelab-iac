@@ -1,4 +1,7 @@
 ---
+- name: 🚀 Precondition checks
+  import_playbook: playbooks/preconditions.yml
+  
 - name: 🚀 Network and Shell Configuration
   import_playbook: playbooks/configuration.yml
   
@@ -7,3 +10,7 @@
   
 - name: 📦 Packages and Configuration
   import_playbook: playbooks/packages.yml
+
+- name: 🚀 Postcondition checks
+  import_playbook: playbooks/postconditions.yml
+  

@@ -1,0 +1,30 @@
+---
+- name: 🛡️ Precondition Checks
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Verify Managed vs Unmanaged (Exhaustive & Exclusive)
+      vars:
+        all_hosts: "{{ groups['all'] }}"
+        # Combine the lists and remove duplicates
+        categorized: "{{ (groups['managed'] | default([]) + groups['unmanaged'] | default([])) | unique }}"
+        # Find elements present in both lists
+        overlap: "{{ groups['managed'] | default([]) | intersect(groups['unmanaged'] | default([])) }}"
+      ansible.builtin.assert:
+        that:
+          - all_hosts | length == categorized | length
+          - overlap | length == 0
+        fail_msg: |
+          Inventory Partitioning Error:
+          Missing from groups: {{ all_hosts | difference(categorized) | list }}
+          Duplicate in groups: {{ overlap | list }}
+        success_msg: "Managed/Unmanaged partition is clean!"
+
+    - name: Verify Location Groups (Home vs Cloud vs External)
+      vars:
+        all_hosts: "{{ groups['all'] }}"
+        locations: "{{ (groups['home'] | default([]) + groups['cloud'] | default([]) + groups['external'] | default([])) | unique }}"
+      ansible.builtin.assert:
+        that:
+          - all_hosts | length == locations | length
+        fail_msg: "Location Error: {{ all_hosts | difference(locations) | list }} are floating in space!"

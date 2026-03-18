@@ -14,10 +14,3 @@
         path: "{{ tmux_path }}"
       register: tmux_check
       when: tmux_path is defined
-
-    - name: Fail if tmux is missing (prevent lockout)
-      ansible.builtin.fail:
-        msg: "Tmux is defined in inventory but not found at {{ tmux_path }}."
-      when: 
-        - tmux_path is defined
-        - not tmux_check.stat.exists

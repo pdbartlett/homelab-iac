@@ -1,0 +1,11 @@
+---
+- name: 🛡️ Postcondition Checks
+  hosts: managed
+  gather_facts: false
+  tasks:
+    - name: Fail if tmux is specified but missing
+      ansible.builtin.fail:
+        msg: "Tmux is defined in inventory but not found at {{ tmux_path }}."
+      when: 
+        - tmux_path is defined
+        - not tmux_check.stat.exists
