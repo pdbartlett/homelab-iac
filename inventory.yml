@@ -6,6 +6,7 @@ all:
         ansible_host: "{{ host_ip_address }}"
         ansible_display_hostname: "{{ local_dns_name | default(inventory_hostname) }}"
         ansible_user: "{{ ssh_user }}"
+        ansible_python_interpreter: /usr/bin/python3
         ansible_ssh_private_key_file: "~/.ssh/id_ed25519"
         potential_path_dirs:
           - "/opt/homebrew/bin"
@@ -40,13 +41,14 @@ all:
         macmini:
           host_ip_address: 192.168.86.226
           ssh_user: pdbartlett
+          tmux_path: /opt/homebrew/bin/tmux
+          use_uv: true
           brew_pkgs:
             - tmux
-          uv_pkgs:
-            - ipython
         argonpi:
           host_ip_address: 192.168.86.232
           ssh_user: pdb
+          tmux_path: /usr/bin/tmux
           apt_pkgs:
             - tmux
         bigmac:
@@ -61,7 +63,8 @@ all:
         oci_free:
           host_ip_address: 84.8.151.76
           ssh_user: ubuntu
-          apt_pkgs:
+          tmux_path: /usr/bin/tmux
+        apt_pkgs:
             - tmux
     external:
       hosts:
@@ -71,13 +74,11 @@ all:
     # OS groups (managed hosts must be in exactly one--currently darwin or debian, others may follow)
     macos:
       vars:
-        ansible_python_interpreter: /usr/bin/python3
         shell_files:
           - shell_basics
           - shell_interactives
           - zshenv
           - zshrc
-        tmux_path: /opt/homebrew/bin/tmux
       hosts:
         bigmac:
         macmini:
@@ -89,7 +90,6 @@ all:
           - profile
           - shell_basics
           - shell_interactives
-        tmux_path: /usr/bin/tmux
       hosts:
         argonpi:
         oci_free:

@@ -3,6 +3,11 @@
   hosts: managed
   gather_facts: false
   tasks:
+    - name: Ensure tmux is present at the defined path if specified
+      ansible.builtin.stat:
+        path: "{{ tmux_path }}"
+      register: tmux_check
+      when: tmux_path is defined
     - name: Fail if tmux is specified but missing
       ansible.builtin.fail:
         msg: "Tmux is defined in inventory but not found at {{ tmux_path }}."

@@ -6,7 +6,7 @@
 
 # --- Default PATH Setup ---
 # Dynamically discovered paths from the last Ansible run
-export PATH="{{ discovered_path }}"
+export PATH="{{ discovered_path.split(':') | unique | join(':') }}"
 
 {% if ansible_os_family == "Darwin" %}
 # Allow OS X to make its amendments

@@ -59,7 +59,7 @@
       ansible.builtin.shell: curl -LsSf https://astral.sh/uv/install.sh | sh
       when:
         - (uv_check.rc | default(0)) != 0
-        - py_pkgs is defined
+        - (use_uv | default(false)) or py_pkgs is defined
 
     # --- NVM / NODE ---
     - name: Check if NVM is installed

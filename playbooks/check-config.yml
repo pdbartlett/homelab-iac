@@ -1,6 +1,6 @@
 ---
-- name: 🛡️ Precondition Checks
-  hosts: localhost
+- name: 🛡️ Configuration Checks
+  hosts: controller
   gather_facts: false
   tasks:
     - name: Verify Managed vs Unmanaged (Exhaustive & Exclusive)

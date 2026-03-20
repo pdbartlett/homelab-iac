@@ -1,18 +1,54 @@
 ---
-- name: Package Installation and Configuration
+- name: 📦 Package Installation and Configuration
   hosts: managed
   environment:
     PATH: "{{ discovered_path }}"
   tasks:
+    # --- 1. SYSTEM PACKAGES (Brew / APT) ---
+    - name: Install APT packages (Linux)
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop: "{{ apt_pkgs | default([]) }}"
+      when: ansible_os_family == "Debian"
+      become: yes
+
+    - name: Install Homebrew packages (macOS)
+      community.general.homebrew:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ brew_pkgs | default([]) }}"
+      when: ansible_os_family == "Darwin"
+
+    # --- 2. LANGUAGE TOOLCHAINS (UV / NPM) ---
+    - name: Install Global NPM Packages
+      community.general.npm:
+        name: "{{ item }}"
+        global: yes
+        state: present
+        # Using our dynamic NVM path discovery from earlier
+        executable: "{{ nvm_bin_dir }}/npm"
+      loop: "{{ npm_pkgs | default([]) }}"
+      when: nvm_bin_dir is defined
+
+    - name: Install Global Rust Tools
+      community.general.cargo:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ cargo_pkgs | default([]) }}"
+
+    - name: Install Global Python Tools via UV
+      ansible.builtin.command:
+        cmd: "uv tool install {{ item }} --force"
+      loop: "{{ uv_pkgs | default([]) }}"
+      register: uv_result
+      changed_when: "'Installed' in uv_result.stdout or 'Updated' in uv_result.stdout"
+
+    # --- 4. CONFIGURATION DEPLOYMENT ---
     - name: Deploy tmux configuration
       ansible.builtin.template:
         src: ../templates/tmux.conf.j2
         dest: "~/.tmux.conf"
         mode: '0644'
-      when: tmux_path is defined
-
-    - name: Ensure tmux is present at the defined path if specified
-      ansible.builtin.stat:
-        path: "{{ tmux_path }}"
-      register: tmux_check
       when: tmux_path is defined
