@@ -1,5 +1,5 @@
 ---
-- name: 📦 Package Installation and Configuration
+- name: Package Installation and Configuration
   hosts: managed
   environment:
     PATH: "{{ discovered_path }}"
@@ -52,3 +52,20 @@
         dest: "~/.tmux.conf"
         mode: '0644'
       when: tmux_path is defined
+
+    - name: Check if kitty is installed
+      ansible.builtin.command: kitty --version
+      register: kitty_check
+      ignore_errors: yes
+      changed_when: false
+      when:
+        - ansible_os_family == "Darwin"
+
+    - name: Deploy kitty configuration
+      ansible.builtin.template:
+        src: ../templates/kitty.conf.j2
+        dest: "~/.config/kitty/kitty.conf"
+        mode: '0644'
+      when: 
+        - ansible_os_family == "Darwin"
+        - (kitty_check_check.rc | default(1)) == 0

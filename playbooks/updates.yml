@@ -1,0 +1,48 @@
+---
+- name: Shell Configuration
+  import_playbook: dotfiles.yml
+  
+- name: Global System Updates
+  hosts: managed
+  tasks:
+    - name: Update Linux (APT)
+      become: yes
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: dist
+      when: ansible_os_family == "Debian"
+
+    - name: Update macOS (Homebrew)
+      community.general.homebrew:
+        update_homebrew: yes
+        upgrade_all: yes
+      when:
+        - ansible_os_family == "Darwin"
+        - brew_pkgs is defined
+
+    - name: Update Global Python Tools (UV)
+      ansible.builtin.command:
+        cmd: "uv tool upgrade --all"
+      changed_when: false # uv handles its own idempotency checks
+      when: use_uv | default(false)
+
+    - name: "Rustup: Self-update"
+      ansible.builtin.command:
+        cmd: "rustup self update"
+      register: rustup_self
+      changed_when: "'already up to date' not in rustup_self.stdout"
+      when: cargo_pkgs is defined
+
+    - name: "Rustup: Update Toolchains"
+      ansible.builtin.command:
+        cmd: "rustup update"
+      register: rustup_up
+      changed_when: "'up to date' not in rustup_up.stdout"
+      when: cargo_pkgs is defined
+
+    - name: "Cargo: Update all installed binaries"
+      ansible.builtin.command:
+        cmd: "cargo install-update -a"
+      register: cargo_up
+      changed_when: "'Updating' in cargo_up.stdout"
+      when: "'cargo-update' in (cargo_pkgs | default([]))"

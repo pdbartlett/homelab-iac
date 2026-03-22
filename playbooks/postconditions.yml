@@ -1,5 +1,5 @@
 ---
-- name: 🛡️ Postcondition Checks
+- name: Postcondition Checks
   hosts: managed
   gather_facts: false
   tasks:

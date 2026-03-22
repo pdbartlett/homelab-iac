@@ -9,6 +9,10 @@ all:
         ansible_python_interpreter: /usr/bin/python3
         ansible_ssh_private_key_file: "~/.ssh/id_ed25519"
         potential_path_dirs:
+          - "/usr/bin"
+          - "/bin"
+          - "/usr/sbin"
+          - "/sbin"
           - "/opt/homebrew/bin"
           - "/usr/local/bin"
           - "{{ ansible_env.HOME }}/.local/bin"
@@ -23,7 +27,7 @@ all:
     unmanaged:
       vars:
         # Force a failure if anyone tries to run a task here
-        ansible_user: "DO_NOT_MANAGE" 
+        ansible_user: "DO_NOT_USE" 
         ansible_ssh_common_args: "-o ProxyCommand='/usr/bin/false'"
       hosts:
         cctv:
@@ -41,10 +45,6 @@ all:
         macmini:
           host_ip_address: 192.168.86.226
           ssh_user: pdbartlett
-          tmux_path: /opt/homebrew/bin/tmux
-          use_uv: true
-          brew_pkgs:
-            - tmux
         argonpi:
           host_ip_address: 192.168.86.232
           ssh_user: pdb
@@ -64,7 +64,7 @@ all:
           host_ip_address: 84.8.151.76
           ssh_user: ubuntu
           tmux_path: /usr/bin/tmux
-        apt_pkgs:
+          apt_pkgs:
             - tmux
     external:
       hosts:
@@ -82,6 +82,15 @@ all:
       hosts:
         bigmac:
         macmini:
+          tmux_path: /opt/homebrew/bin/tmux
+          use_uv: true
+          brew_pkgs:
+            - tmux
+          cargo_pkgs:
+            - cargo-clean-all
+            - cargo-generate
+            - cargo-update
+            - trunk
     debian:
       vars:
         shell_files:

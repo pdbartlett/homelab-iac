@@ -1,18 +1,24 @@
 ---
-- name: 🚀 Configuration checks
+- name: Configuration checks
   import_playbook: playbooks/check-config.yml
 
 # Can add host precondition checks later if needed
   
-- name: 🚀 Network and Shell Configuration
-  import_playbook: playbooks/configuration.yml
+- name: Network Configuration
+  import_playbook: playbooks/network.yml
   
-- name: 🏗️ Package Managers
+- name: Shell Configuration
+  import_playbook: playbooks/dotfiles.yml
+  
+- name: Package Managers
   import_playbook: playbooks/package-managers.yml
   
-- name: 📦 Packages and Configuration
+- name: Shell Configuration (again, to pick up changes)
+  import_playbook: playbooks/dotfiles.yml
+  
+- name: Packages and Configuration
   import_playbook: playbooks/packages.yml
 
-- name: 🚀 Postcondition checks
+- name: Postcondition checks
   import_playbook: playbooks/postconditions.yml
   
